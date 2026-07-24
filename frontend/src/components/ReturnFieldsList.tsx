@@ -13,11 +13,11 @@ export function ReturnFieldsList({
   onSelectField,
 }: ReturnFieldsListProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {sections.map((section) => (
         <section key={section.id} aria-label={section.label} className="space-y-2">
-          <h2 className="text-sm font-medium text-ink/70">{section.label}</h2>
-          <div className="space-y-2">
+          <h2 className="type-section">{section.label}</h2>
+          <div className="divide-y divide-rule border-t border-rule">
             {section.fields.map((field) => (
               <FieldValue
                 key={field.id}

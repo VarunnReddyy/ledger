@@ -10,6 +10,7 @@ import type {
   FieldCorrectResponse,
   FieldTrace,
   FieldVerifyResponse,
+  FirmOverview,
   FulfillmentResult,
   MeResponse,
   MessageCreateRequest,
@@ -72,6 +73,28 @@ export function useTasks(params: TasksQueryParams | null) {
       );
     },
     enabled: Boolean(params?.role && params.user),
+  });
+}
+
+export function useFirmOverview(
+  params: RoleScopedParams | null,
+  options: { enabled?: boolean } = {},
+) {
+  const enabled = options.enabled ?? true;
+  return useQuery({
+    queryKey: ["firm", "overview", params?.role ?? null, params?.user ?? null],
+    queryFn: () => {
+      if (!params) {
+        throw new Error("Firm overview requires an active role and user.");
+      }
+      return apiGet<FirmOverview>(
+        `/api/firm/overview${buildSearchParams({
+          role: params.role,
+          user: params.user,
+        })}`,
+      );
+    },
+    enabled: Boolean(enabled && params?.role && params.user),
   });
 }
 

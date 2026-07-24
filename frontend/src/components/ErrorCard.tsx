@@ -5,13 +5,10 @@ interface ErrorCardProps {
 
 export function ErrorCard({ message, title = "Could not load this page" }: ErrorCardProps) {
   return (
-    <div
-      role="alert"
-      className="rounded-sm border border-flag/40 bg-flag/5 px-4 py-5 text-sm text-ink"
-    >
-      <h2 className="font-medium text-flag">{title}</h2>
-      <p className="mt-1 text-ink/80">{message}</p>
-      <p className="mt-3 text-xs text-ink/60">
+    <div role="alert" className="border-l-2 border-flag py-1 pl-4">
+      <h2 className="text-[15px] font-medium leading-relaxed text-flag">{title}</h2>
+      <p className="mt-1 text-[15px] leading-relaxed text-ink/80">{message}</p>
+      <p className="mt-2 text-[13px] text-ink/55">
         Check that the API is running, then refresh the page.
       </p>
     </div>

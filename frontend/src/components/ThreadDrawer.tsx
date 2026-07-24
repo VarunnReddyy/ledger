@@ -135,22 +135,27 @@ export function ThreadDrawer({
         aria-labelledby={titleId}
         className="relative flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-lg"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-rule px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-rule px-6 py-4">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-lg font-semibold tracking-tight">
+            <h2 id={titleId} className="type-page-title">
               Discussion
             </h2>
-            <p className="mt-0.5 text-xs text-ink/60">
+            <p className="type-meta mt-1">
               {threads.length === 0
                 ? "No threads on this object yet"
-                : `${threads.length} thread${threads.length === 1 ? "" : "s"}`}
+                : (
+                  <>
+                    <span className="font-tabular tabular-nums">{threads.length}</span>
+                    {` thread${threads.length === 1 ? "" : "s"}`}
+                  </>
+                )}
             </p>
           </div>
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-rule p-1.5 text-ink/70 hover:bg-ledger/50 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+            className="btn-secondary p-1.5"
             aria-label="Close"
           >
             <X className="h-4 w-4" aria-hidden />
@@ -158,7 +163,7 @@ export function ThreadDrawer({
         </div>
 
         {threads.length > 1 ? (
-          <div className="flex gap-1 overflow-x-auto border-b border-rule px-3 py-2">
+          <div className="flex gap-1 overflow-x-auto border-b border-rule px-4 py-2">
             {threads.map((thread) => {
               const active = selected?.id === thread.id;
               return (
@@ -166,10 +171,10 @@ export function ThreadDrawer({
                   key={thread.id}
                   type="button"
                   onClick={() => setSelectedId(thread.id)}
-                  className={`shrink-0 rounded-sm px-2.5 py-1.5 text-xs ${
+                  className={`shrink-0 px-2.5 py-1.5 text-[13px] active:translate-y-px ${
                     active
                       ? "bg-ledger text-ink"
-                      : "text-ink/60 hover:bg-ledger/50 hover:text-ink"
+                      : "text-ink/60 hover:bg-ledger hover:text-ink"
                   }`}
                 >
                   {thread.subject}
@@ -183,9 +188,8 @@ export function ThreadDrawer({
           {selected ? (
             <ThreadBody thread={selected} />
           ) : (
-            <div className="px-4 py-8 text-sm text-ink/60">
-              <p className="font-medium text-ink">No discussion yet</p>
-              <p className="mt-1">
+            <div className="flex flex-1 flex-col items-center justify-center px-6 py-8 text-center">
+              <p className="text-[15px] leading-relaxed text-ink/60">
                 When someone opens a thread on this object, it will show up here.
               </p>
             </div>
@@ -193,7 +197,7 @@ export function ThreadDrawer({
         </div>
 
         {selected && scope ? (
-          <form onSubmit={onSubmit} className="border-t border-rule px-4 py-3">
+          <form onSubmit={onSubmit} className="border-t border-rule px-6 py-4">
             {isFirmSide ? (
               <div
                 className="mb-2 flex gap-1"
@@ -223,10 +227,10 @@ export function ThreadDrawer({
               value={body}
               onChange={(event) => setBody(event.target.value)}
               placeholder="Write a message…"
-              className="w-full resize-none rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+              className="w-full resize-none rounded-sm border border-rule bg-paper px-3 py-2 text-[15px] leading-relaxed text-ink placeholder:text-ink/40"
             />
             {composerError ? (
-              <p className="mt-2 text-sm text-flag" role="alert">
+              <p className="mt-2 text-[15px] leading-relaxed text-flag" role="alert">
                 {composerError}
               </p>
             ) : null}
@@ -234,7 +238,7 @@ export function ThreadDrawer({
               <button
                 type="submit"
                 disabled={postMessage.isPending}
-                className="rounded-sm bg-seal px-3 py-2 text-sm text-paper hover:bg-seal/90 disabled:opacity-60"
+                className="btn-primary"
               >
                 {postMessage.isPending ? "Sending…" : "Send message"}
               </button>
@@ -245,7 +249,7 @@ export function ThreadDrawer({
         {toast ? (
           <div
             role="status"
-            className="absolute bottom-24 left-4 right-4 rounded-sm border border-seal/30 bg-paper px-3 py-2 text-sm text-seal shadow-sm"
+            className="absolute bottom-24 left-4 right-4 border border-rule bg-paper px-3 py-2 text-[15px] leading-relaxed text-seal shadow-sm"
           >
             {toast}
           </div>
@@ -263,11 +267,11 @@ function ThreadBody({ thread }: ThreadBodyProps) {
   const requests = thread.requests;
 
   return (
-    <div className="space-y-4 px-4 py-4">
+    <div className="space-y-6 px-6 py-6">
       <div>
-        <h3 className="text-sm font-medium text-ink">{thread.subject}</h3>
+        <h3 className="text-[15px] font-medium leading-relaxed text-ink">{thread.subject}</h3>
         {thread.awaiting_role ? (
-          <span className="mt-2 inline-flex items-center rounded-sm bg-pending/15 px-2 py-0.5 text-xs font-medium text-pending">
+          <span className="mt-2 inline-flex items-center rounded-sm bg-pending/15 px-2 py-0.5 text-[13px] font-medium text-pending">
             Waiting on {roleLabel(thread.awaiting_role)}
           </span>
         ) : null}
@@ -275,10 +279,8 @@ function ThreadBody({ thread }: ThreadBodyProps) {
 
       {requests.length > 0 ? (
         <section aria-label="Request checklist" className="space-y-2">
-          <h4 className="text-xs font-medium uppercase tracking-wide text-ink/50">
-            Requests
-          </h4>
-          <ul className="space-y-2">
+          <h4 className="type-section">Requests</h4>
+          <ul className="divide-y divide-rule border-t border-rule">
             {requests.map((req) => (
               <RequestRow key={req.id} request={req} />
             ))}
@@ -286,9 +288,11 @@ function ThreadBody({ thread }: ThreadBodyProps) {
         </section>
       ) : null}
 
-      <section aria-label="Messages" className="space-y-3">
+      <section aria-label="Messages" className="space-y-4">
         {thread.messages.length === 0 ? (
-          <p className="text-sm text-ink/60">No messages yet. Start the conversation below.</p>
+          <p className="text-[15px] leading-relaxed text-ink/60">
+            No messages yet. Start the conversation below.
+          </p>
         ) : (
           thread.messages.map((message) => (
             <MessageRow key={message.id} message={message} />
@@ -310,7 +314,7 @@ function RequestRow({ request }: RequestRowProps) {
   const checked = fulfilled || waived;
 
   return (
-    <li className="flex items-start gap-2 rounded-sm border border-rule bg-ledger/30 px-3 py-2 text-sm">
+    <li className="flex items-start gap-2 py-3 text-[15px] leading-relaxed">
       <span
         className={`mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border ${
           checked
@@ -320,7 +324,7 @@ function RequestRow({ request }: RequestRowProps) {
         aria-hidden
       >
         {checked ? (
-          <span className="text-[0.55rem] font-bold leading-none">✓</span>
+          <span className="text-[13px] font-bold leading-none">✓</span>
         ) : null}
       </span>
       <div className="min-w-0 flex-1">
@@ -328,15 +332,15 @@ function RequestRow({ request }: RequestRowProps) {
           {request.label}
         </p>
         {fulfilled ? (
-          <p className="mt-0.5 text-xs text-seal">Received</p>
+          <p className="type-meta mt-0.5 text-seal">Received</p>
         ) : waived ? (
-          <p className="mt-0.5 text-xs text-ink/50">Waived</p>
+          <p className="type-meta mt-0.5">Waived</p>
         ) : request.due_date ? (
-          <p className={`mt-0.5 font-tabular text-xs ${dueness.className}`}>
+          <p className={`mt-0.5 font-tabular text-[13px] tabular-nums ${dueness.className}`}>
             {dueness.label}
           </p>
         ) : (
-          <p className="mt-0.5 text-xs text-ink/50">No due date</p>
+          <p className="type-meta mt-0.5">No due date</p>
         )}
       </div>
     </li>
@@ -352,27 +356,31 @@ function MessageRow({ message }: MessageRowProps) {
   return (
     <article className="flex gap-3">
       <div
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-ledger font-tabular text-xs font-medium text-ink"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-ledger font-tabular text-[13px] font-medium tabular-nums text-ink"
         aria-hidden
       >
         {initials}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-ink">{message.author_name}</span>
+          <span className="text-[15px] font-medium leading-relaxed text-ink">
+            {message.author_name}
+          </span>
           <time
             dateTime={message.created_at}
-            className="font-tabular text-xs text-ink/50"
+            className="font-tabular text-[13px] tabular-nums text-ink/55"
           >
             {formatDateTime(message.created_at)}
           </time>
           {message.visibility === "internal" ? (
-            <span className="inline-flex items-center rounded-sm bg-ink/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink/70">
+            <span className="inline-flex items-center rounded-sm bg-ink/10 px-1.5 py-0.5 text-[13px] font-medium uppercase tracking-wide text-ink/70">
               Internal
             </span>
           ) : null}
         </div>
-        <p className="mt-1 whitespace-pre-wrap text-sm text-ink/80">{message.body}</p>
+        <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-ink/80">
+          {message.body}
+        </p>
       </div>
     </article>
   );
@@ -392,10 +400,10 @@ function VisibilityToggle({ value, selected, onSelect, label }: VisibilityToggle
       type="button"
       onClick={() => onSelect(value)}
       aria-pressed={active}
-      className={`rounded-sm px-2.5 py-1 text-xs ${
+      className={`px-2.5 py-1 text-[13px] active:translate-y-px ${
         active
           ? "bg-ledger text-ink"
-          : "border border-rule text-ink/60 hover:bg-ledger/40 hover:text-ink"
+          : "border border-rule text-ink/60 hover:bg-ledger hover:text-ink"
       }`}
     >
       {label}

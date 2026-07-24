@@ -7,12 +7,13 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useMe } from "@/lib/queries";
 import type { MembershipOut, Role, UserOut } from "@/lib/types";
 
-const AS_PARAM = "as";
-const DEFAULT_MEMBERSHIP_ID = "mem_dana_preparer";
+export const AS_PARAM = "as";
+export const WELCOME_PATH = "/welcome";
+
 const FIRM_ROLES: ReadonlySet<Role> = new Set([
   "preparer",
   "reviewer",
@@ -76,12 +77,13 @@ interface RoleProviderProps {
 }
 
 export function RoleProvider({ children }: RoleProviderProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const membershipId = searchParams.get(AS_PARAM);
   const me = useMe(membershipId);
   const [notice, setNotice] = useState<string | null>(null);
+  const needsWelcome = !membershipId && location.pathname !== WELCOME_PATH;
 
   const options = useMemo((): RoleOption[] => {
     if (!me.data) {
@@ -95,20 +97,6 @@ export function RoleProvider({ children }: RoleProviderProps) {
     }
     return items;
   }, [me.data]);
-
-  useEffect(() => {
-    if (membershipId || !me.isSuccess || options.length === 0) {
-      return;
-    }
-    const preferred =
-      options.find((item) => item.membership.id === DEFAULT_MEMBERSHIP_ID) ?? options[0];
-    if (!preferred) {
-      return;
-    }
-    const next = new URLSearchParams(searchParams);
-    next.set(AS_PARAM, preferred.membership.id);
-    setSearchParams(next, { replace: true });
-  }, [membershipId, me.isSuccess, options, searchParams, setSearchParams]);
 
   const activeMembership = me.data?.active_membership ?? null;
   const activeUser = me.data?.active_user ?? null;
@@ -179,7 +167,7 @@ export function RoleProvider({ children }: RoleProviderProps) {
       options,
       isFirmSide,
       audience: isFirmSide ? "staff" : "client",
-      isLoading: me.isLoading || (!membershipId && me.isSuccess),
+      isLoading: me.isLoading,
       isError: me.isError,
       error: me.error,
       notice,
@@ -195,7 +183,6 @@ export function RoleProvider({ children }: RoleProviderProps) {
       options,
       isFirmSide,
       me.isLoading,
-      me.isSuccess,
       me.isError,
       me.error,
       notice,
@@ -206,7 +193,20 @@ export function RoleProvider({ children }: RoleProviderProps) {
     ],
   );
 
-  return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
+  return (
+    <RoleContext.Provider value={value}>
+      {needsWelcome ? <Navigate to={WELCOME_PATH} replace /> : children}
+    </RoleContext.Provider>
+  );
+}
+
+/** Root layout: role context for every route, including /welcome. */
+export function RootLayout() {
+  return (
+    <RoleProvider>
+      <Outlet />
+    </RoleProvider>
+  );
 }
 
 export function useRole(): RoleContextValue {

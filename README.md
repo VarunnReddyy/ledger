@@ -17,6 +17,7 @@ Ledger is an AI-assisted tax platform for CPA firm staff and their clients: staf
 | Role-filtered permissions (server-side) | As **Dana**, open Documents → **W-2 — Beta LLC** → **Discussion** (internal thread). Open the same doc as **Alex** (`?as=mem_alex_owner`) — internal thread is absent. |
 | Collaboration / outstanding requests | Field **13** (QBI) → **Discussion** — client-visible thread + outstanding K-1 request. |
 | Priority work queue | **Dashboard** as Dana (ranked tasks). As **Marcus** (reviewer), toggle **Needs review**. |
+| Manager vs preparer dashboard: switch Dana ↔ Priya (Firm admin). | **Dashboard** as **Priya** (`?as=mem_priya_admin`) — Firm overview above Today. Preparers (Dana) do not see it. |
 
 ## What’s genuine vs simulated
 

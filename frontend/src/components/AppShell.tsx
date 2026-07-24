@@ -1,10 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ChevronDown } from "lucide-react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { ErrorCard } from "@/components/ErrorCard";
 import { queryErrorMessage } from "@/lib/queryErrors";
-import { isFirmSideRole, useRole } from "@/lib/role-context";
+import { isFirmSideRole, useRole, WELCOME_PATH } from "@/lib/role-context";
 import type { Role } from "@/lib/types";
 
 const DEFAULT_FIRM_MEMBERSHIP_ID = "mem_dana_preparer";
@@ -26,6 +26,15 @@ function firmNav(hrefFor: (path: string) => string): NavItem[] {
 
 function clientNav(hrefFor: (path: string) => string, clientId: string): NavItem[] {
   return [{ to: hrefFor(`/portal/${clientId}`), label: "My return", end: true }];
+}
+
+function navLinkClass({ isActive }: { isActive: boolean }): string {
+  return [
+    "relative px-2.5 py-1.5 text-[15px]",
+    isActive
+      ? "text-ink after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:bg-seal"
+      : "text-ink/70 hover:bg-ledger hover:text-ink",
+  ].join(" ");
 }
 
 export function AppShell() {
@@ -51,9 +60,9 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="border-b border-rule">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-6">
+      <header className="sticky top-0 z-40 border-b border-rule bg-paper/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-8 py-3">
+          <div className="flex min-w-0 items-center gap-8">
             <NavLink
               to={hrefFor(homePath)}
               className="shrink-0 text-lg font-semibold tracking-tight text-ink"
@@ -66,11 +75,7 @@ export function AppShell() {
                   key={item.to}
                   to={item.to}
                   end={item.end ?? false}
-                  className={({ isActive }) =>
-                    `rounded-sm px-2.5 py-1.5 text-sm ${
-                      isActive ? "bg-ledger text-ink" : "text-ink/70 hover:bg-ledger/60 hover:text-ink"
-                    }`
-                  }
+                  className={navLinkClass}
                 >
                   {item.label}
                 </NavLink>
@@ -93,7 +98,7 @@ export function AppShell() {
           />
         </div>
         <nav
-          className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-3 sm:hidden sm:px-6"
+          className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-8 pb-3 sm:hidden"
           aria-label="Primary mobile"
         >
           {navItems.map((item) => (
@@ -101,27 +106,23 @@ export function AppShell() {
               key={item.to}
               to={item.to}
               end={item.end ?? false}
-              className={({ isActive }) =>
-                `shrink-0 rounded-sm px-2.5 py-1.5 text-sm ${
-                  isActive ? "bg-ledger text-ink" : "text-ink/70 hover:bg-ledger/60 hover:text-ink"
-                }`
-              }
+              className={navLinkClass}
             >
               {item.label}
             </NavLink>
           ))}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main className="mx-auto max-w-6xl px-8 py-8">
         {notice ? (
           <p
-            className="mb-4 border border-rule bg-ledger/40 px-3 py-2 text-sm text-ink/70"
+            className="mb-8 border-b border-rule pb-4 text-[15px] leading-relaxed text-ink/70"
             role="status"
           >
             {notice}
             <button
               type="button"
-              className="ml-3 text-ink/50 underline-offset-2 hover:text-ink hover:underline"
+              className="ml-3 text-[13px] text-ink/55 underline-offset-2 hover:text-ink hover:underline active:translate-y-px"
               onClick={clearNotice}
             >
               Dismiss
@@ -173,6 +174,7 @@ function RoleSwitcher({
   const listId = useId();
   const chevronRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const switchRef = useRef<HTMLAnchorElement>(null);
 
   const activeSide: AudienceSide = isFirmSide ? "firm" : "client";
 
@@ -185,6 +187,8 @@ function RoleSwitcher({
       ),
     [activeSide, options],
   );
+
+  const focusableCount = sideOptions.length + 1;
 
   useEffect(() => {
     if (!open) {
@@ -231,6 +235,14 @@ function RoleSwitcher({
     onSelect(targetId);
   }
 
+  function focusMenuIndex(index: number) {
+    if (index < sideOptions.length) {
+      itemRefs.current[index]?.focus();
+      return;
+    }
+    switchRef.current?.focus();
+  }
+
   function onRadiogroupKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (disabled) {
       return;
@@ -247,35 +259,41 @@ function RoleSwitcher({
   }
 
   function onMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (sideOptions.length === 0) {
+    if (focusableCount === 0) {
       return;
     }
-    const currentIndex = itemRefs.current.findIndex(
+    const radioIndex = itemRefs.current.findIndex(
       (node) => node === document.activeElement,
     );
+    const currentIndex =
+      radioIndex >= 0
+        ? radioIndex
+        : document.activeElement === switchRef.current
+          ? sideOptions.length
+          : -1;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      const next = currentIndex < 0 ? 0 : (currentIndex + 1) % sideOptions.length;
-      itemRefs.current[next]?.focus();
+      const next = currentIndex < 0 ? 0 : (currentIndex + 1) % focusableCount;
+      focusMenuIndex(next);
       return;
     }
     if (event.key === "ArrowUp") {
       event.preventDefault();
       const next =
         currentIndex < 0
-          ? sideOptions.length - 1
-          : (currentIndex - 1 + sideOptions.length) % sideOptions.length;
-      itemRefs.current[next]?.focus();
+          ? focusableCount - 1
+          : (currentIndex - 1 + focusableCount) % focusableCount;
+      focusMenuIndex(next);
       return;
     }
     if (event.key === "Home") {
       event.preventDefault();
-      itemRefs.current[0]?.focus();
+      focusMenuIndex(0);
       return;
     }
     if (event.key === "End") {
       event.preventDefault();
-      itemRefs.current[sideOptions.length - 1]?.focus();
+      focusMenuIndex(focusableCount - 1);
     }
   }
 
@@ -301,7 +319,7 @@ function RoleSwitcher({
         />
       </div>
 
-      <p className="min-w-0 max-w-[9rem] truncate text-xs text-ink/70 sm:max-w-[12rem]">
+      <p className="type-meta min-w-0 max-w-[9rem] truncate sm:max-w-[12rem]">
         <span className="font-medium text-ink">{identityName}</span>
         <span className="text-ink/40"> · </span>
         <span>{identityLabel}</span>
@@ -311,7 +329,7 @@ function RoleSwitcher({
         <button
           ref={chevronRef}
           type="button"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink/60 hover:bg-ledger/50 disabled:opacity-50"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink/60 hover:bg-ledger active:translate-y-px disabled:opacity-50"
           aria-haspopup="menu"
           aria-expanded={open}
           aria-controls={listId}
@@ -340,19 +358,32 @@ function RoleSwitcher({
                   type="button"
                   role="menuitemradio"
                   aria-checked={selected}
-                  className={`flex w-full flex-col px-3 py-2 text-left text-sm outline-none focus-visible:bg-ledger ${
-                    selected ? "bg-ledger" : "hover:bg-ledger/50"
+                  className={`flex w-full flex-col px-3 py-2 text-left outline-none ${
+                    selected ? "bg-ledger" : "hover:bg-ledger"
                   }`}
                   onClick={() => {
                     onSelect(option.id);
                     setOpen(false);
                   }}
                 >
-                  <span className="font-medium text-ink">{option.name}</span>
-                  <span className="text-xs text-ink/60">{option.label}</span>
+                  <span className="text-[15px] font-medium leading-relaxed text-ink">
+                    {option.name}
+                  </span>
+                  <span className="type-meta">{option.label}</span>
                 </button>
               );
             })}
+            <div className="mt-1 border-t border-rule pt-1">
+              <Link
+                ref={switchRef}
+                to={WELCOME_PATH}
+                role="menuitem"
+                className="block w-full px-3 py-2 text-left text-[15px] leading-relaxed text-ink outline-none hover:bg-ledger"
+                onClick={() => setOpen(false)}
+              >
+                Switch perspective
+              </Link>
+            </div>
           </div>
         ) : null}
       </div>
@@ -375,8 +406,8 @@ function SideSegment({ label, checked, disabled, onSelect }: SideSegmentProps) {
       aria-checked={checked}
       tabIndex={checked ? 0 : -1}
       disabled={disabled}
-      className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
-        checked ? "bg-seal text-paper" : "bg-transparent text-ink/70 hover:text-ink"
+      className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium active:translate-y-px disabled:opacity-50 ${
+        checked ? "bg-seal text-paper" : "bg-transparent text-ink/70 hover:bg-ledger hover:text-ink"
       }`}
       onClick={onSelect}
     >

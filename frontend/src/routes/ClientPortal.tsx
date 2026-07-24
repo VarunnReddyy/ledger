@@ -62,15 +62,15 @@ export default function ClientPortalRoute() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl space-y-8">
-        <LoadingSkeleton rows={6} label="Loading client portal" />
+      <div className="mx-auto max-w-3xl">
+        <LoadingSkeleton rows={6} label="Loading client portal" variant="letter" />
       </div>
     );
   }
 
   if (roleError || returns.isError || (primary && detail.isError)) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <ErrorCard message={queryErrorMessage(error, "Client portal could not be loaded.")} />
       </div>
     );
@@ -89,14 +89,11 @@ export default function ClientPortalRoute() {
 
   if (!primary) {
     return (
-      <div className="mx-auto max-w-2xl space-y-8">
-        <div>
-          <p className="text-sm text-ink/60">Your tax return</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{displayName}</h1>
-          <p className="mt-1 font-tabular text-sm text-ink/50">
-            {scopedClientId ?? "unknown client"}
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl space-y-8">
+        <PortalHeader
+          displayName={displayName}
+          meta={scopedClientId ?? "unknown client"}
+        />
         <EmptyState
           title="No return on file"
           body="When your firm opens an engagement for this account, its progress will show up here."
@@ -111,104 +108,109 @@ export default function ClientPortalRoute() {
 
   if (isFirstRun) {
     return (
-      <div className="mx-auto max-w-2xl space-y-8">
-        <div>
-          <p className="text-sm text-ink/60">Your tax return</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{displayName}</h1>
-          <p className="mt-1 font-tabular text-sm text-ink/50">
-            {primary.client_id} · tax year {primary.tax_year}
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl space-y-8">
+        <PortalHeader
+          displayName={displayName}
+          meta={`${primary.client_id} · tax year ${primary.tax_year}`}
+        />
 
         <NextStepCard nextStep={nextStep} scope={roleScope} />
 
         <ProgressTimeline activeStepIndex={activeStepIndex} />
 
         {clientReturns.length > 1 ? (
-          <details className="group border-t border-rule pt-4">
-            <summary className="cursor-pointer text-sm text-ink/60 outline-none hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal">
-              Your other returns
-            </summary>
-            <ul className="mt-4 divide-y divide-rule border border-rule">
-              {clientReturns.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
-                >
-                  <div>
-                    <div className="font-tabular text-ink">Tax year {item.tax_year}</div>
-                    <div className="mt-0.5 text-xs text-ink/60">{item.client_label}</div>
-                  </div>
-                  <StatusPill status={item.status} audience="client" />
-                </li>
-              ))}
-            </ul>
-          </details>
+          <OtherReturnsList items={clientReturns} />
         ) : null}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div>
-        <p className="text-sm text-ink/60">Your tax return</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">{displayName}</h1>
-        <p className="mt-1 font-tabular text-sm text-ink/50">
-          {primary.client_id} · tax year {primary.tax_year}
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <PortalHeader
+        displayName={displayName}
+        meta={`${primary.client_id} · tax year ${primary.tax_year}`}
+      />
 
-      <section className="rounded-sm border border-rule bg-paper p-6">
+      <section className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-medium">Where things stand</h2>
-            <p className="mt-2 text-sm text-ink/70">{primary.client_label}</p>
+            <h2 className="type-section">Where things stand</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-ink/70">{primary.client_label}</p>
           </div>
           <StatusPill status={primary.status} audience="client" />
         </div>
-        <ol className="mt-6 space-y-3">
-          {CLIENT_TIMELINE.map((status, index) => {
-            const label = clientStatusLabel(status);
-            const active = index === activeStepIndex;
-            const complete = index < activeStepIndex;
-            return (
-              <li key={status} className="flex items-center gap-3 text-sm">
-                <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full font-tabular text-xs ${
-                    active
-                      ? "bg-seal text-paper"
-                      : complete
-                        ? "bg-ledger text-seal"
-                        : "bg-ledger text-ink/40"
-                  }`}
-                >
-                  {index + 1}
-                </span>
-                <span className={active ? "font-medium text-ink" : "text-ink/60"}>{label}</span>
-              </li>
-            );
-          })}
-        </ol>
+        <ProgressTimelineList activeStepIndex={activeStepIndex} />
       </section>
 
       {clientReturns.length > 1 ? (
-        <section className="rounded-sm border border-rule p-6">
-          <h2 className="text-lg font-medium">Your returns</h2>
-          <ul className="mt-4 divide-y divide-rule border border-rule">
-            {clientReturns.map((item) => (
-              <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                <div>
-                  <div className="font-tabular text-ink">Tax year {item.tax_year}</div>
-                  <div className="mt-0.5 text-xs text-ink/60">{item.client_label}</div>
-                </div>
-                <StatusPill status={item.status} audience="client" />
-              </li>
-            ))}
-          </ul>
-        </section>
+        <OtherReturnsList items={clientReturns} titled />
       ) : null}
     </div>
+  );
+}
+
+interface PortalHeaderProps {
+  displayName: string;
+  meta: string;
+}
+
+function PortalHeader({ displayName, meta }: PortalHeaderProps) {
+  return (
+    <div>
+      <p className="type-meta">Your tax return</p>
+      <h1 className="type-page-title mt-1">{displayName}</h1>
+      <p className="type-meta mt-1 font-tabular tabular-nums">{meta}</p>
+    </div>
+  );
+}
+
+interface OtherReturnsListProps {
+  items: ReturnListItem[];
+  titled?: boolean;
+}
+
+function OtherReturnsList({ items, titled = false }: OtherReturnsListProps) {
+  if (titled) {
+    return (
+      <section className="space-y-4 border-t border-rule pt-8">
+        <h2 className="type-section">Your returns</h2>
+        <ul className="divide-y divide-rule">
+          {items.map((item) => (
+            <OtherReturnRow key={item.id} item={item} />
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  return (
+    <details className="group border-t border-rule pt-4">
+      <summary className="type-meta cursor-pointer hover:text-ink">
+        Your other returns
+      </summary>
+      <ul className="mt-4 divide-y divide-rule">
+        {items.map((item) => (
+          <OtherReturnRow key={item.id} item={item} />
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+interface OtherReturnRowProps {
+  item: ReturnListItem;
+}
+
+function OtherReturnRow({ item }: OtherReturnRowProps) {
+  return (
+    <li className="flex items-center justify-between gap-3 py-3 text-[15px] leading-relaxed">
+      <div>
+        <div className="font-tabular tabular-nums text-ink">Tax year {item.tax_year}</div>
+        <div className="type-meta mt-0.5">{item.client_label}</div>
+      </div>
+      <StatusPill status={item.status} audience="client" />
+    </li>
   );
 }
 
@@ -241,7 +243,7 @@ function NextStepCard({ nextStep, scope }: NextStepCardProps) {
   // Quiet one-liner when there is nothing actionable — never an empty card.
   if (!showReceived && !canUpload) {
     return (
-      <p className="border-l-2 border-seal pl-4 text-base text-ink">
+      <p className="border-l-2 border-seal pl-4 text-[15px] leading-relaxed text-ink">
         You&apos;re all set — we&apos;re preparing your return.
       </p>
     );
@@ -280,22 +282,29 @@ function NextStepCard({ nextStep, scope }: NextStepCardProps) {
   }
 
   return (
-    <section className="rounded-sm border-2 border-seal bg-ledger/40 px-6 py-8">
-      <p className="text-sm font-medium uppercase tracking-wide text-seal">Next step</p>
+    <section className="border border-rule bg-paper p-6">
+      <p className="type-section">Next step</p>
       {activeStep && !showReceived ? (
         <>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2 className="type-page-title mt-3">
             {activeStep.headline}
-            {minutesLabel ? ` — ${minutesLabel}` : null}
+            {minutesLabel ? (
+              <>
+                {" "}
+                — <span className="font-tabular tabular-nums">{minutesLabel}</span>
+              </>
+            ) : null}
           </h2>
-          <p className="mt-3 max-w-md text-sm text-ink/70">
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink/70">
             Finish this and we can keep moving on your return.
           </p>
         </>
       ) : null}
 
       {showReceived && receivedLabel ? (
-        <p className="mt-4 text-base font-medium text-seal">{receivedLabel} received ✓</p>
+        <p className="mt-4 text-[15px] font-medium leading-relaxed text-seal">
+          {receivedLabel} received ✓
+        </p>
       ) : (
         <button
           type="button"
@@ -303,7 +312,7 @@ function NextStepCard({ nextStep, scope }: NextStepCardProps) {
           onClick={() => {
             void onUpload();
           }}
-          className="mt-5 inline-flex items-center rounded-sm bg-seal px-4 py-2.5 text-sm font-medium text-paper hover:bg-seal/90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+          className="btn-primary mt-5"
         >
           Upload {docName}
         </button>
@@ -315,7 +324,7 @@ function NextStepCard({ nextStep, scope }: NextStepCardProps) {
         </div>
       ) : null}
 
-      <p className="mt-5 text-xs text-ink/50">
+      <p className="type-meta mt-5">
         Demo: upload is simulated, no file leaves your device.
       </p>
     </section>
@@ -336,32 +345,38 @@ interface ProgressTimelineProps {
 
 function ProgressTimeline({ activeStepIndex }: ProgressTimelineProps) {
   return (
-    <section aria-label="Progress">
-      <h2 className="text-sm font-medium text-ink/60">Progress</h2>
-      <ol className="mt-4 space-y-3">
-        {CLIENT_TIMELINE.map((status, index) => {
-          const label = clientStatusLabel(status);
-          const active = index === activeStepIndex;
-          const complete = index < activeStepIndex;
-          return (
-            <li key={status} className="flex items-center gap-3 text-sm">
-              <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full font-tabular text-xs ${
-                  active
-                    ? "bg-seal text-paper"
-                    : complete
-                      ? "bg-ledger text-seal"
-                      : "bg-ledger text-ink/40"
-                }`}
-              >
-                {index + 1}
-              </span>
-              <span className={active ? "font-medium text-ink" : "text-ink/60"}>{label}</span>
-            </li>
-          );
-        })}
-      </ol>
+    <section aria-label="Progress" className="space-y-4">
+      <h2 className="type-section">Progress</h2>
+      <ProgressTimelineList activeStepIndex={activeStepIndex} />
     </section>
+  );
+}
+
+function ProgressTimelineList({ activeStepIndex }: ProgressTimelineProps) {
+  return (
+    <ol className="space-y-3">
+      {CLIENT_TIMELINE.map((status, index) => {
+        const label = clientStatusLabel(status);
+        const active = index === activeStepIndex;
+        const complete = index < activeStepIndex;
+        return (
+          <li key={status} className="flex items-center gap-3 text-[15px] leading-relaxed">
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full font-tabular text-[13px] tabular-nums ${
+                active
+                  ? "bg-seal text-paper"
+                  : complete
+                    ? "bg-ledger text-seal"
+                    : "bg-ledger text-ink/40"
+              }`}
+            >
+              {index + 1}
+            </span>
+            <span className={active ? "font-medium text-ink" : "text-ink/60"}>{label}</span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

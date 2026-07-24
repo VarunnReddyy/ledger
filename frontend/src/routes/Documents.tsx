@@ -32,6 +32,10 @@ const DOC_STATUSES: DocumentStatus[] = [
 ];
 
 const PER_PAGE = 50;
+const ZEBRA_THRESHOLD = 10;
+
+const filterControlClass =
+  "rounded-sm border border-rule bg-paper px-3 py-2 text-[15px] text-ink";
 
 export default function DocumentsRoute() {
   const { hrefFor, isFirmSide } = useRole();
@@ -70,6 +74,8 @@ export default function DocumentsRoute() {
   const rangeStart = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
   const rangeEnd = Math.min(page * PER_PAGE, total);
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const useZebra =
+    documents.isSuccess && documents.data.items.length > ZEBRA_THRESHOLD;
 
   function clearClientFilter() {
     const next = new URLSearchParams(searchParams);
@@ -90,29 +96,29 @@ export default function DocumentsRoute() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
-        <p className="mt-1 text-sm text-ink/70">
+        <h1 className="type-page-title">Documents</h1>
+        <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
           Uploads, extraction status, and items still outstanding from clients.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 border border-rule bg-paper p-4 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="flex flex-col gap-3 border-y border-rule py-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-2">
         {isFirmSide ? (
           <ClientFilter onChange={() => setPage(1)} />
         ) : null}
-        <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-ink/60">
+        <label className="type-meta flex min-w-[12rem] flex-1 flex-col gap-2">
           Search
           <input
             type="search"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Title, issuer, or filename"
-            className="rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+            className={filterControlClass}
           />
         </label>
-        <label className="flex min-w-[10rem] flex-col gap-1 text-xs text-ink/60">
+        <label className="type-meta flex min-w-[10rem] flex-col gap-2">
           Type
           <select
             value={docType}
@@ -120,7 +126,7 @@ export default function DocumentsRoute() {
               setDocType(event.target.value as DocType | "");
               setPage(1);
             }}
-            className="rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+            className={filterControlClass}
           >
             <option value="">All types</option>
             {DOC_TYPES.map((type) => (
@@ -130,7 +136,7 @@ export default function DocumentsRoute() {
             ))}
           </select>
         </label>
-        <label className="flex min-w-[10rem] flex-col gap-1 text-xs text-ink/60">
+        <label className="type-meta flex min-w-[10rem] flex-col gap-2">
           Status
           <select
             value={status}
@@ -138,7 +144,7 @@ export default function DocumentsRoute() {
               setStatus(event.target.value as DocumentStatus | "");
               setPage(1);
             }}
-            className="rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+            className={filterControlClass}
           >
             <option value="">All statuses</option>
             {DOC_STATUSES.map((item) => (
@@ -150,7 +156,9 @@ export default function DocumentsRoute() {
         </label>
       </div>
 
-      {documents.isLoading ? <LoadingSkeleton rows={8} label="Loading documents" /> : null}
+      {documents.isLoading ? (
+        <LoadingSkeleton rows={8} label="Loading documents" variant="table" />
+      ) : null}
 
       {documents.isError ? (
         <ErrorCard
@@ -193,8 +201,8 @@ export default function DocumentsRoute() {
 
       {documents.isSuccess && documents.data.items.length > 0 ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3 text-xs text-ink/60">
-            <p className="font-tabular">
+          <div className="flex items-center justify-between gap-3 type-meta">
+            <p className="font-tabular tabular-nums">
               {rangeStart}–{rangeEnd} of {total}
             </p>
             <div className="flex items-center gap-2">
@@ -202,56 +210,63 @@ export default function DocumentsRoute() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
-                className="rounded-sm border border-rule px-2 py-1 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-ledger/50"
+                className="btn-secondary px-2 py-1 text-[13px]"
               >
                 Previous
               </button>
-              <span className="font-tabular">
+              <span className="font-tabular tabular-nums">
                 Page {page} of {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                className="rounded-sm border border-rule px-2 py-1 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-ledger/50"
+                className="btn-secondary px-2 py-1 text-[13px]"
               >
                 Next
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-rule">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-rule bg-ledger/60 text-xs uppercase tracking-wide text-ink/60">
-                <tr>
-                  <th className="px-4 py-2 font-medium">Document</th>
-                  <th className="px-4 py-2 font-medium">Type</th>
-                  <th className="px-4 py-2 font-medium">Status</th>
-                  <th className="px-4 py-2 text-right font-medium">Year</th>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left">
+              <thead className="border-b border-rule">
+                <tr className="type-section">
+                  <th className="py-2 pr-4 font-semibold">Document</th>
+                  <th className="px-4 py-2 font-semibold">Type</th>
+                  <th className="px-4 py-2 font-semibold">Status</th>
+                  <th className="py-2 pl-4 text-right font-semibold">Year</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-rule">
                 {documents.data.items.map((doc, index) => (
-                  <tr key={doc.id} className={index % 2 === 1 ? "bg-ledger/40" : undefined}>
-                    <td className="px-4 py-3">
+                  <tr
+                    key={doc.id}
+                    className={`hover:bg-ledger ${
+                      useZebra && index % 2 === 1 ? "bg-ledger" : undefined
+                    }`}
+                  >
+                    <td className="py-3 pr-4">
                       <Link
                         to={hrefFor(`/documents/${doc.id}`)}
-                        className="font-medium text-ink underline-offset-2 hover:underline"
+                        className="text-[15px] font-medium leading-relaxed text-ink underline-offset-2 hover:underline"
                       >
                         {doc.title}
                       </Link>
-                      <div className="mt-0.5 text-xs text-ink/60">
+                      <div className="type-meta mt-0.5">
                         {doc.issuer ?? "Unknown issuer"} ·{" "}
-                        <span className="font-tabular">{doc.id}</span>
+                        <span className="font-tabular tabular-nums">{doc.id}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 capitalize text-ink/80">
+                    <td className="px-4 py-3 text-[15px] capitalize leading-relaxed text-ink/80">
                       {doc.doc_type.replaceAll("_", " ")}
                     </td>
                     <td className="px-4 py-3">
                       <DocStatus status={doc.status} />
                     </td>
-                    <td className="px-4 py-3 text-right font-tabular">{doc.tax_year}</td>
+                    <td className="py-3 pl-4 text-right font-tabular text-[15px] tabular-nums">
+                      {doc.tax_year}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -271,12 +286,12 @@ function DocStatus({ status }: DocStatusProps) {
   const tone =
     status === "needs_attention"
       ? "text-flag"
-      : status === "requested"
+      : status === "requested" || status === "processing" || status === "uploaded"
         ? "text-pending"
-        : status === "extracted" || status === "accepted"
+        : status === "accepted"
           ? "text-seal"
-          : "text-ink/60";
+          : "text-ink/55";
 
   const label = status.replaceAll("_", " ");
-  return <span className={`text-xs capitalize ${tone}`}>{label}</span>;
+  return <span className={`text-[13px] capitalize ${tone}`}>{label}</span>;
 }

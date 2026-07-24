@@ -9,6 +9,7 @@ export default {
         ledger: "var(--ledger)",
         rule: "var(--rule)",
         seal: "var(--seal)",
+        "seal-deep": "var(--seal-deep)",
         flag: "var(--flag)",
         pending: "var(--pending)",
         machine: "var(--machine)",

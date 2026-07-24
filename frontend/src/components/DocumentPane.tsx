@@ -28,15 +28,15 @@ export function DocumentPane({ provenance }: DocumentPaneProps) {
   if (!provenance) {
     return (
       <section
-        className="flex min-h-[20rem] flex-col rounded-sm border border-rule bg-ledger/30 p-4 lg:min-h-full"
+        className="flex min-h-[20rem] flex-col border-l border-rule pl-0 lg:min-h-full lg:pl-8"
         aria-label="Document pane"
       >
-        <h2 className="text-sm font-medium text-ink/70">Source document</h2>
-        <p className="mt-2 text-sm text-ink/60">
+        <h2 className="type-section">Source document</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-ink/60">
           Select a provenance line to open its source page and highlight the extracted region.
         </p>
-        <div className="mt-6 flex flex-1 items-center justify-center rounded-sm border border-dashed border-rule bg-paper p-6">
-          <p className="text-sm text-ink/50">No provenance selected.</p>
+        <div className="mt-8 flex flex-1 items-center justify-center">
+          <p className="text-[15px] leading-relaxed text-ink/60">No provenance selected.</p>
         </div>
       </section>
     );
@@ -47,18 +47,18 @@ export function DocumentPane({ provenance }: DocumentPaneProps) {
 
   return (
     <section
-      className="flex min-h-[20rem] flex-col rounded-sm border border-rule bg-ledger/30 p-4 lg:min-h-full"
+      className="flex min-h-[20rem] flex-col border-l border-rule pl-0 lg:min-h-full lg:pl-8"
       aria-label="Document pane"
     >
       <div className="border-b border-rule pb-3">
-        <h2 className="text-sm font-medium text-ink">{document.title}</h2>
-        <p className="mt-1 font-tabular text-xs text-ink/60">
+        <h2 className="text-[15px] font-medium leading-relaxed text-ink">{document.title}</h2>
+        <p className="type-meta mt-1 font-tabular tabular-nums">
           {document.issuer ? `${document.issuer} · ` : null}
           Page {page.page_no}
         </p>
       </div>
 
-      <div className="relative mt-4 min-h-[24rem] flex-1 overflow-hidden rounded-sm border border-rule bg-paper">
+      <div className="relative mt-4 min-h-[24rem] flex-1 overflow-hidden border border-rule bg-paper">
         <iframe
           title={`${document.title}, page ${page.page_no}`}
           src={`/api/pages/${page.id}/html`}
@@ -112,7 +112,7 @@ export function DocumentPane({ provenance }: DocumentPaneProps) {
         </svg>
       </div>
 
-      <p className="mt-3 font-tabular text-xs text-machine">
+      <p className="mt-3 font-tabular text-[13px] tabular-nums text-machine">
         {provenance.box_label}
         {provenance.raw_value ? ` · ${provenance.raw_value}` : null}
       </p>

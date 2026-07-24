@@ -32,8 +32,10 @@ export default function ReturnWorkspaceRoute() {
     detail.isSuccess && detail.data.sections.length > 0;
 
   return (
-    <div className="space-y-6">
-      {detail.isLoading ? <LoadingSkeleton rows={8} label="Loading return" /> : null}
+    <div className="space-y-8">
+      {detail.isLoading ? (
+        <LoadingSkeleton rows={8} label="Loading return" variant="page" />
+      ) : null}
 
       {detail.isError ? (
         <ErrorCard message={queryErrorMessage(detail.error, "Return could not be loaded.")} />
@@ -41,13 +43,16 @@ export default function ReturnWorkspaceRoute() {
 
       {detail.isSuccess ? (
         <>
-          <div className="flex flex-col gap-3 border-b border-rule pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-tabular text-xs text-ink/50">{detail.data.id}</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-                {detail.data.client_name} · {detail.data.tax_year}
+              <p className="font-tabular text-[13px] tabular-nums text-ink/55">
+                {detail.data.id}
+              </p>
+              <h1 className="type-page-title mt-1">
+                {detail.data.client_name} ·{" "}
+                <span className="font-tabular tabular-nums">{detail.data.tax_year}</span>
               </h1>
-              <p className="mt-1 text-sm text-ink/70">
+              <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
                 Form {detail.data.form_type} · {statusLabel}
               </p>
             </div>
@@ -55,22 +60,22 @@ export default function ReturnWorkspaceRoute() {
           </div>
 
           {hasSections ? (
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-8 lg:grid-cols-2">
               <section aria-label="Return fields">
                 <ReturnFieldsList sections={detail.data.sections} onSelectField={selectField} />
               </section>
 
               <section
                 aria-label="Source document"
-                className="min-h-[28rem] rounded-sm border border-rule bg-ledger/30 p-4"
+                className="min-h-[28rem] border-l border-rule pl-0 lg:pl-8"
               >
-                <h2 className="text-sm font-medium text-ink/70">Source document</h2>
-                <p className="mt-2 text-sm text-ink/60">
+                <h2 className="type-section">Source document</h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink/60">
                   Select a field to open provenance in the detail pane. The source region
                   highlights once a field is chosen.
                 </p>
-                <div className="mt-6 rounded-sm border border-dashed border-rule bg-paper p-6">
-                  <p className="text-sm text-ink/50">No field selected.</p>
+                <div className="mt-8 flex min-h-[12rem] items-center justify-center">
+                  <p className="text-[15px] leading-relaxed text-ink/60">No field selected.</p>
                 </div>
               </section>
             </div>

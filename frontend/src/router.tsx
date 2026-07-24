@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
-import { RoleProvider } from "@/lib/role-context";
+import { RootLayout } from "@/lib/role-context";
 import DashboardRoute from "@/routes/Dashboard";
 import ReturnsRoute from "@/routes/Returns";
 import ReturnWorkspaceRoute from "@/routes/ReturnWorkspace";
@@ -8,23 +8,26 @@ import FieldDetailRoute from "@/routes/FieldDetail";
 import DocumentsRoute from "@/routes/Documents";
 import DocumentDetailRoute from "@/routes/DocumentDetail";
 import ClientPortalRoute from "@/routes/ClientPortal";
+import WelcomeRoute from "@/routes/Welcome";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <RoleProvider>
-        <AppShell />
-      </RoleProvider>
-    ),
+    element: <RootLayout />,
     children: [
-      { index: true, element: <DashboardRoute /> },
-      { path: "returns", element: <ReturnsRoute /> },
-      { path: "returns/:returnId", element: <ReturnWorkspaceRoute /> },
-      { path: "returns/:returnId/fields/:fieldId", element: <FieldDetailRoute /> },
-      { path: "documents", element: <DocumentsRoute /> },
-      { path: "documents/:documentId", element: <DocumentDetailRoute /> },
-      { path: "portal/:clientId", element: <ClientPortalRoute /> },
+      { path: "welcome", element: <WelcomeRoute /> },
+      {
+        element: <AppShell />,
+        children: [
+          { index: true, element: <DashboardRoute /> },
+          { path: "returns", element: <ReturnsRoute /> },
+          { path: "returns/:returnId", element: <ReturnWorkspaceRoute /> },
+          { path: "returns/:returnId/fields/:fieldId", element: <FieldDetailRoute /> },
+          { path: "documents", element: <DocumentsRoute /> },
+          { path: "documents/:documentId", element: <DocumentDetailRoute /> },
+          { path: "portal/:clientId", element: <ClientPortalRoute /> },
+        ],
+      },
     ],
   },
 ]);

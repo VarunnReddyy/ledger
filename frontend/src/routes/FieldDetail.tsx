@@ -163,8 +163,8 @@ export default function FieldDetailRoute() {
 
   if (detail.isLoading || (Boolean(fieldId) && trace.isLoading)) {
     return (
-      <div className="space-y-6">
-        <LoadingSkeleton rows={8} label="Loading field provenance" />
+      <div className="space-y-8">
+        <LoadingSkeleton rows={8} label="Loading field provenance" variant="page" />
       </div>
     );
   }
@@ -199,38 +199,40 @@ export default function FieldDetailRoute() {
   const canMutate = !locked;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {toast ? (
         <div
           role="status"
-          className="fixed bottom-6 right-6 z-50 rounded-sm border border-seal/30 bg-paper px-4 py-2 text-sm text-seal shadow-sm"
+          className="fixed bottom-6 right-6 z-50 border border-rule bg-paper px-4 py-2 text-[15px] leading-relaxed text-seal shadow-sm"
         >
           {toast}
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 border-b border-rule pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="font-tabular text-xs text-ink/50">{detail.data.id}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            {field.line_ref} · {field.label}
+          <p className="font-tabular text-[13px] tabular-nums text-ink/55">{detail.data.id}</p>
+          <h1 className="type-page-title mt-1">
+            <span className="font-tabular tabular-nums">{field.line_ref}</span> · {field.label}
           </h1>
-          <p className="mt-1 text-sm text-ink/70">
-            {detail.data.client_name} · {detail.data.tax_year} · Form {detail.data.form_type}
+          <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
+            {detail.data.client_name} ·{" "}
+            <span className="font-tabular tabular-nums">{detail.data.tax_year}</span> · Form{" "}
+            {detail.data.form_type}
           </p>
           {chainIds.length > 0 ? (
-            <nav className="mt-3 flex flex-wrap items-center gap-1 text-sm" aria-label="Field trail">
+            <nav className="mt-3 flex flex-wrap items-center gap-2 text-[15px]" aria-label="Field trail">
               {chainIds.map((id, index) => {
                 const crumb = fieldsById.get(id);
                 const label = crumb?.line_ref ?? id;
                 const crumbChain = chainIds.slice(0, index);
                 return (
-                  <span key={id} className="flex items-center gap-1">
+                  <span key={id} className="flex items-center gap-2">
                     <Link
                       to={hrefFor(`/returns/${returnId}/fields/${id}`, {
                         chain: crumbChain.length > 0 ? crumbChain.join(",") : null,
                       })}
-                      className="font-tabular text-seal underline-offset-2 hover:underline"
+                      className="font-tabular tabular-nums text-ink underline-offset-2 hover:underline"
                     >
                       {label}
                     </Link>
@@ -240,7 +242,7 @@ export default function FieldDetailRoute() {
                   </span>
                 );
               })}
-              <span className="font-tabular text-ink">{field.line_ref}</span>
+              <span className="font-tabular tabular-nums text-ink">{field.line_ref}</span>
             </nav>
           ) : null}
         </div>
@@ -248,26 +250,26 @@ export default function FieldDetailRoute() {
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink hover:bg-ledger/50"
+            className="btn-secondary inline-flex items-center gap-2"
           >
             Discussion
             {fieldThreads.length > 0 ? (
-              <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-seal px-1.5 py-0.5 font-tabular text-xs text-paper">
+              <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-ink/10 px-1.5 py-0.5 font-tabular text-[13px] tabular-nums text-ink">
                 {fieldThreads.length}
               </span>
             ) : null}
           </button>
           <Link
             to={hrefFor(`/returns/${returnId}`)}
-            className="text-sm text-ink/60 underline-offset-2 hover:text-ink hover:underline"
+            className="type-meta underline-offset-2 hover:text-ink hover:underline"
           >
             Back to return
           </Link>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-        <section aria-label="Field explanation" className="space-y-4">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <section aria-label="Field explanation" className="space-y-6">
           <FieldValue
             label={field.label}
             lineRef={field.line_ref}
@@ -279,25 +281,28 @@ export default function FieldDetailRoute() {
 
           {correction ? (
             <div
-              className="rounded-sm border border-rule bg-ledger/40 px-3 py-2.5 text-sm text-ink/80"
+              className="border-l-2 border-rule py-1 pl-4 text-[15px] leading-relaxed text-ink/80"
               role="status"
             >
               AI read {formatMoney(correction.old_value)} — corrected to{" "}
-              <span className="font-tabular">{formatMoney(correction.new_value)}</span> by you
+              <span className="font-tabular tabular-nums">{formatMoney(correction.new_value)}</span>{" "}
+              by you
               {correction.reason ? (
                 <>
                   {" "}
-                  · <span className="text-ink/60">{correction.reason}</span>
+                  · <span className="text-ink/55">{correction.reason}</span>
                 </>
               ) : null}
             </div>
           ) : null}
 
-          <div className="rounded-sm border border-rule bg-paper p-4">
-            <h2 className="text-sm font-medium">How Ledger got this</h2>
+          <div className="border border-rule bg-paper p-6">
+            <h2 className="type-section">How Ledger got this</h2>
             {transform ? (
               <>
-                <p className="mt-2 text-sm text-ink/70">{transform.human_explanation}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-ink/70">
+                  {transform.human_explanation}
+                </p>
                 <div className="mt-4">
                   <TraceNode
                     trace={trace.data}
@@ -308,27 +313,27 @@ export default function FieldDetailRoute() {
                 </div>
               </>
             ) : (
-              <p className="mt-2 text-sm text-ink/70">
+              <p className="mt-3 text-[15px] leading-relaxed text-ink/70">
                 No calculation trail is attached to this field yet.
               </p>
             )}
           </div>
 
           {annotation ? (
-            <div className="rounded-sm border border-rule bg-paper p-4 text-sm">
+            <div className="space-y-2 border-t border-rule pt-6 text-[15px] leading-relaxed">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-medium">Annotation</h2>
+                <h2 className="type-section">Annotation</h2>
                 <ConfidenceChip band={annotation.band} />
               </div>
-              <p className="mt-2 text-ink/70">{annotation.rationale}</p>
+              <p className="text-ink/70">{annotation.rationale}</p>
               {annotation.uncertainty_note ? (
-                <p className="mt-2 text-xs text-pending">{annotation.uncertainty_note}</p>
+                <p className="text-[13px] text-pending">{annotation.uncertainty_note}</p>
               ) : null}
-              <details className="mt-3">
-                <summary className="cursor-pointer text-xs text-ink/50 hover:text-ink/70">
+              <details className="mt-2">
+                <summary className="type-meta cursor-pointer hover:text-ink">
                   Details
                 </summary>
-                <p className="mt-2 font-tabular text-xs text-ink/50">
+                <p className="mt-2 font-tabular text-[13px] tabular-nums text-ink/55">
                   Raw confidence {annotation.confidence.toFixed(2)}
                 </p>
               </details>
@@ -336,13 +341,13 @@ export default function FieldDetailRoute() {
           ) : null}
 
           {actionError ? (
-            <p className="text-sm text-flag" role="alert">
+            <p className="text-[15px] leading-relaxed text-flag" role="alert">
               {actionError}
             </p>
           ) : null}
 
           {locked ? (
-            <p className="text-sm text-ink/50">
+            <p className="text-[15px] leading-relaxed text-ink/55">
               {fieldsById.get(field.id)?.locked_reason ?? "This field is locked."}
             </p>
           ) : null}
@@ -353,7 +358,7 @@ export default function FieldDetailRoute() {
                 type="button"
                 onClick={onVerify}
                 disabled={verify.isPending}
-                className="rounded-sm bg-seal px-3 py-2 text-sm text-paper hover:bg-seal/90 disabled:opacity-60"
+                className="btn-primary"
               >
                 {verify.isPending ? "Marking verified…" : "Mark verified"}
               </button>
@@ -365,7 +370,7 @@ export default function FieldDetailRoute() {
                   setShowCorrectForm((open) => !open);
                   setActionError(null);
                 }}
-                className="rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink hover:bg-ledger/50"
+                className="btn-secondary"
               >
                 Correct this
               </button>
@@ -375,10 +380,10 @@ export default function FieldDetailRoute() {
           {showCorrectForm ? (
             <form
               onSubmit={onCorrectSubmit}
-              className="space-y-3 rounded-sm border border-rule bg-paper p-4"
+              className="space-y-3 border-t border-rule pt-6"
             >
               <div>
-                <label htmlFor="correct-value" className="block text-sm font-medium">
+                <label htmlFor="correct-value" className="type-meta block">
                   New value
                 </label>
                 <input
@@ -386,35 +391,35 @@ export default function FieldDetailRoute() {
                   name="value"
                   value={correctValue}
                   onChange={(event) => setCorrectValue(event.target.value)}
-                  className="mt-1 w-full rounded-sm border border-rule bg-paper px-3 py-2 font-tabular text-sm tabular-nums"
+                  className="mt-2 w-full rounded-sm border border-rule bg-paper px-3 py-2 font-tabular text-[15px] tabular-nums"
                   inputMode="decimal"
                   required
                 />
               </div>
               <div>
-                <label htmlFor="correct-reason" className="block text-sm font-medium">
-                  Reason <span className="font-normal text-ink/50">(optional)</span>
+                <label htmlFor="correct-reason" className="type-meta block">
+                  Reason <span className="font-normal">(optional)</span>
                 </label>
                 <input
                   id="correct-reason"
                   name="reason"
                   value={correctReason}
                   onChange={(event) => setCorrectReason(event.target.value)}
-                  className="mt-1 w-full rounded-sm border border-rule bg-paper px-3 py-2 text-sm"
+                  className="mt-2 w-full rounded-sm border border-rule bg-paper px-3 py-2 text-[15px]"
                 />
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="submit"
                   disabled={correct.isPending}
-                  className="rounded-sm bg-seal px-3 py-2 text-sm text-paper hover:bg-seal/90 disabled:opacity-60"
+                  className="btn-primary"
                 >
                   {correct.isPending ? "Saving correction…" : "Save correction"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCorrectForm(false)}
-                  className="rounded-sm border border-rule px-3 py-2 text-sm text-ink/70 hover:bg-ledger/40"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
@@ -442,15 +447,10 @@ interface ConfidenceChipProps {
 }
 
 function ConfidenceChip({ band }: ConfidenceChipProps) {
-  const tone =
-    band === "high"
-      ? "bg-seal/15 text-seal"
-      : band === "medium"
-        ? "bg-pending/15 text-pending"
-        : "bg-flag/15 text-flag";
-
   return (
-    <span className={`rounded-sm px-2 py-0.5 text-xs capitalize ${tone}`}>{band}</span>
+    <span className="rounded-sm bg-machine/10 px-2 py-0.5 text-[13px] capitalize text-machine">
+      {band}
+    </span>
   );
 }
 

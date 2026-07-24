@@ -13,12 +13,54 @@
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-seal;
+    @apply outline-none ring-2 ring-seal ring-offset-2 ring-offset-paper;
+  }
+
+  a,
+  button,
+  [role="button"],
+  [role="menuitem"],
+  [role="menuitemradio"],
+  [role="radio"],
+  [role="tab"],
+  input,
+  select,
+  textarea,
+  summary {
+    @apply transition-[color,background-color,border-color,opacity,transform,box-shadow] duration-150 ease-out;
   }
 
   .font-tabular {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-sm bg-seal px-3 py-2 text-[15px] font-medium text-paper transition duration-150 ease-out hover:bg-seal-deep active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-seal focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-sm border border-rule bg-transparent px-3 py-2 text-[15px] text-ink transition duration-150 ease-out hover:bg-ledger active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-seal focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .type-page-title {
+    @apply text-2xl font-semibold tracking-tight text-ink;
+  }
+
+  .type-section {
+    @apply text-sm font-semibold uppercase tracking-wide;
+    color: color-mix(in srgb, var(--ink) 60%, transparent);
+  }
+
+  .type-body {
+    @apply text-[15px] leading-relaxed text-ink;
+  }
+
+  .type-meta {
+    @apply text-[13px];
+    color: color-mix(in srgb, var(--ink) 55%, transparent);
   }
 }
 

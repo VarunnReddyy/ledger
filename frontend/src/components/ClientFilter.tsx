@@ -24,13 +24,13 @@ export function ClientFilter({ onChange }: ClientFilterProps) {
   }
 
   return (
-    <label className="flex min-w-[12rem] flex-col gap-1 text-xs text-ink/60">
+    <label className="type-meta flex min-w-[12rem] flex-col gap-2">
       Client
       <select
         value={value}
         disabled={clients.isLoading || clients.isError}
         onChange={(event) => setClient(event.target.value)}
-        className="rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal disabled:opacity-50"
+        className="rounded-sm border border-rule bg-paper px-3 py-2 text-[15px] text-ink disabled:opacity-50"
       >
         <option value="">All clients</option>
         {(clients.data ?? []).map((client) => (

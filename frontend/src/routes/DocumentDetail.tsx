@@ -22,7 +22,7 @@ export default function DocumentDetailRoute() {
   const threads = useMemo(() => detail.data?.threads ?? [], [detail.data?.threads]);
 
   if (detail.isLoading) {
-    return <LoadingSkeleton rows={8} label="Loading document" />;
+    return <LoadingSkeleton rows={8} label="Loading document" variant="page" />;
   }
 
   if (detail.isError) {
@@ -40,22 +40,23 @@ export default function DocumentDetailRoute() {
   const doc = detail.data;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 border-b border-rule pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-3 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="font-tabular text-xs text-ink/50">{doc.id}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{doc.title}</h1>
-          <p className="mt-1 text-sm text-ink/70">
-            {doc.issuer ?? "Unknown issuer"} · {doc.tax_year} ·{" "}
+          <p className="font-tabular text-[13px] tabular-nums text-ink/55">{doc.id}</p>
+          <h1 className="type-page-title mt-1">{doc.title}</h1>
+          <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
+            {doc.issuer ?? "Unknown issuer"} ·{" "}
+            <span className="font-tabular tabular-nums">{doc.tax_year}</span> ·{" "}
             <span className="capitalize">{doc.doc_type.replaceAll("_", " ")}</span>
           </p>
-          <p className="mt-1 text-xs text-ink/50">
+          <p className="type-meta mt-1">
             <DocStatusLabel status={doc.status} />
             {doc.uploaded_at ? (
               <>
                 {" "}
                 · Uploaded{" "}
-                <span className="font-tabular">{formatDateTime(doc.uploaded_at)}</span>
+                <span className="font-tabular tabular-nums">{formatDateTime(doc.uploaded_at)}</span>
               </>
             ) : null}
           </p>
@@ -64,36 +65,35 @@ export default function DocumentDetailRoute() {
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-sm border border-rule bg-paper px-3 py-2 text-sm text-ink hover:bg-ledger/50"
+            className="btn-secondary inline-flex items-center gap-2"
           >
             Discussion
             {threads.length > 0 ? (
-              <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-seal px-1.5 py-0.5 font-tabular text-xs text-paper">
+              <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-ink/10 px-1.5 py-0.5 font-tabular text-[13px] tabular-nums text-ink">
                 {threads.length}
               </span>
             ) : null}
           </button>
           <Link
             to={hrefFor(isFirmSide ? "/documents" : homePath)}
-            className="text-sm text-ink/60 underline-offset-2 hover:text-ink hover:underline"
+            className="type-meta underline-offset-2 hover:text-ink hover:underline"
           >
             {isFirmSide ? "Back to documents" : "Back"}
           </Link>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
         <section aria-label="Document pages" className="space-y-4">
-          <h2 className="text-sm font-medium">Pages</h2>
+          <h2 className="type-section">Pages</h2>
           {doc.pages.length === 0 ? (
-            <p className="text-sm text-ink/60">No pages are attached to this document yet.</p>
+            <p className="text-[15px] leading-relaxed text-ink/60">
+              No pages are attached to this document yet.
+            </p>
           ) : (
             doc.pages.map((page) => (
-              <div
-                key={page.id}
-                className="overflow-hidden rounded-sm border border-rule bg-paper"
-              >
-                <div className="border-b border-rule px-3 py-2 font-tabular text-xs text-ink/60">
+              <div key={page.id} className="overflow-hidden border-t border-rule">
+                <div className="border-b border-rule py-2 font-tabular text-[13px] tabular-nums text-ink/55">
                   Page {page.page_no}
                 </div>
                 <iframe
@@ -108,22 +108,22 @@ export default function DocumentDetailRoute() {
         </section>
 
         <section aria-label="Extracted fields" className="space-y-3">
-          <h2 className="text-sm font-medium">Provenance on this document</h2>
+          <h2 className="type-section">Provenance on this document</h2>
           {doc.provenances.length === 0 ? (
-            <p className="text-sm text-ink/60">
+            <p className="text-[15px] leading-relaxed text-ink/60">
               No return fields are linked to this document yet.
             </p>
           ) : (
-            <ul className="divide-y divide-rule border border-rule">
+            <ul className="divide-y divide-rule border-t border-rule">
               {doc.provenances.map((item) => (
-                <li key={item.id} className="px-3 py-2.5 text-sm">
+                <li key={item.id} className="py-3 text-[15px] leading-relaxed">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="font-medium text-ink">{item.box_label}</span>
-                    <span className="font-tabular text-ink/80">
+                    <span className="font-tabular text-right tabular-nums text-ink/80">
                       {item.raw_value ?? "—"}
                     </span>
                   </div>
-                  <p className="mt-0.5 font-tabular text-xs text-ink/50">
+                  <p className="type-meta mt-0.5 font-tabular tabular-nums">
                     {item.field_line_ref} · {item.field_label}
                   </p>
                 </li>
@@ -152,10 +152,10 @@ function DocStatusLabel({ status }: DocStatusLabelProps) {
   const tone =
     status === "needs_attention"
       ? "text-flag"
-      : status === "requested"
+      : status === "requested" || status === "processing" || status === "uploaded"
         ? "text-pending"
-        : status === "extracted" || status === "accepted"
+        : status === "accepted"
           ? "text-seal"
-          : "text-ink/60";
+          : "text-ink/55";
   return <span className={`capitalize ${tone}`}>{status.replaceAll("_", " ")}</span>;
 }

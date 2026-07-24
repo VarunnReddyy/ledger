@@ -198,6 +198,27 @@ export interface TaskListItem {
   priority_score: number;
 }
 
+export interface ReturnsByStatusItem {
+  status: ReturnStatus;
+  staff_label: string;
+  count: number;
+}
+
+export interface StaffLoadItem {
+  user_id: string;
+  name: string;
+  open_tasks: number;
+  overdue: number;
+}
+
+export interface FirmOverview {
+  returns_by_status: ReturnsByStatusItem[];
+  overdue_tasks: number;
+  blocked_tasks: number;
+  awaiting_client: number;
+  staff_load: StaffLoadItem[];
+}
+
 export interface ReturnListItem {
   id: string;
   client_id: string;

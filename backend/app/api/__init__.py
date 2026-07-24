@@ -21,6 +21,7 @@ from . import (  # noqa: E402, F401
     clients,
     documents,
     fields,
+    firm,
     me,
     requests,
     returns,

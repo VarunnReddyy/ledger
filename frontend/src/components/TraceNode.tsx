@@ -22,7 +22,7 @@ export function TraceNode({
   }
 
   return (
-    <ul className={`space-y-1 font-tabular text-sm ${depth > 0 ? "mt-2" : ""}`}>
+    <ul className={`space-y-1 font-tabular text-[15px] ${depth > 0 ? "mt-2" : ""}`}>
       {transform.inputs.map((input, index) => {
         const operator = index === 0 ? "=" : input.operator;
 
@@ -35,10 +35,10 @@ export function TraceNode({
                 type="button"
                 onClick={() => onSelectProvenance(provenance)}
                 aria-pressed={selected}
-                className={`flex w-full items-baseline gap-2 rounded-sm px-2 py-1.5 text-left transition ${
+                className={`flex w-full items-baseline gap-2 px-2 py-1.5 text-left duration-150 ease-out ${
                   selected
                     ? "bg-machine/10 text-machine ring-1 ring-machine/40"
-                    : "text-ink/80 hover:bg-ledger/50"
+                    : "text-ink/80 hover:bg-ledger"
                 }`}
               >
                 <span className="w-4 shrink-0 text-ink/40">{operator}</span>
@@ -46,7 +46,7 @@ export function TraceNode({
                   {provenance.box_label} · {documentLabel(provenance)}
                 </span>
                 <span className="hidden min-w-[2rem] flex-1 border-b border-dotted border-rule sm:block" aria-hidden />
-                <span className="shrink-0 tabular-nums text-ink">
+                <span className="shrink-0 text-right tabular-nums text-ink">
                   {formatMoney(provenance.raw_value)}
                 </span>
               </button>
@@ -61,14 +61,16 @@ export function TraceNode({
             <button
               type="button"
               onClick={() => onNavigateField(summary.id)}
-              className="flex w-full items-baseline gap-2 rounded-sm px-2 py-1.5 text-left text-ink/80 transition hover:bg-ledger/50"
+              className="flex w-full items-baseline gap-2 px-2 py-1.5 text-left text-ink/80 duration-150 ease-out hover:bg-ledger"
             >
               <span className="w-4 shrink-0 text-ink/40">{operator}</span>
               <span className="min-w-0 flex-1 truncate">
                 {summary.line_ref} · {summary.label}
               </span>
               <span className="hidden min-w-[2rem] flex-1 border-b border-dotted border-rule sm:block" aria-hidden />
-              <span className="shrink-0 tabular-nums text-ink">{formatMoney(summary.value)}</span>
+              <span className="shrink-0 text-right tabular-nums text-ink">
+                {formatMoney(summary.value)}
+              </span>
             </button>
             <div className="ml-3 border-l border-rule pl-2">
               <TraceNode
