@@ -1,0 +1,9 @@
+flask==3.0.3
+flask-sqlalchemy==3.1.1
+flask-cors==4.0.1
+sqlalchemy==2.0.32
+psycopg[binary]==3.2.1
+pydantic==2.8.2
+python-dotenv==1.0.1
+anthropic==0.34.2
+gunicorn==22.0.0

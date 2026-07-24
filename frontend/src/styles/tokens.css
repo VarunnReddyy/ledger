@@ -1,0 +1,21 @@
+:root {
+  --ink: #12211f;
+  --paper: #fbfaf7;
+  --ledger: #e8f0e9;
+  --rule: #dde0da;
+  --seal: #0b6e4f;
+  --flag: #b4460e;
+  --pending: #b7791f;
+  --machine: #5b4b8a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
