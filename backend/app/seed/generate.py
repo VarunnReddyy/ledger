@@ -494,7 +494,7 @@ def _seed_returns() -> None:
             "usr_marcus_hale",
             None,
         ),
-        # Client first-run demo — docs_requested with a requested W-2
+        # Client first-run demo — docs_requested with two outstanding upload requests
         (
             "ret_meridian_2025",
             "clt_meridian",
@@ -539,32 +539,67 @@ def _seed_returns() -> None:
 
 
 def _seed_meridian_first_run() -> None:
-    """Client first-run demo: requested W-2 drives the portal Next step card."""
+    """Client first-run demo: two outstanding upload requests drive the portal."""
     db.session.add(
-        Document(
-            id="doc_w2_meridian",
-            client_id="clt_meridian",
-            doc_type=DocType.W2,
-            title="W-2 — Meridian Studio",
-            filename="w2_meridian_2025.pdf",
-            issuer="Meridian Studio",
-            tax_year=2025,
-            page_count=1,
-            status=DocumentStatus.REQUESTED,
-            uploaded_at=None,
-            uploaded_by_id=None,
+        Thread(
+            id="thr_meridian_docs",
+            subject="Documents we still need",
+            visibility=Visibility.CLIENT_VISIBLE,
+            resolved_at=None,
+            awaiting_role=Role.INDIVIDUAL_TAXPAYER,
+            awaiting_user_id="usr_morgan_meridian",
             created_at=_ts(5, 10),
             updated_at=_ts(5, 10),
         )
     )
+    db.session.flush()
     db.session.add(
-        DocumentPage(
-            id="page_w2_meridian",
-            document_id="doc_w2_meridian",
-            page_no=1,
-            body_html=_placeholder_html("W-2 — Meridian Studio", "Meridian Studio", 2025),
-            ocr_text="W-2 Meridian Studio 2025",
+        ThreadLink(
+            id="trl_meridian_return",
+            thread_id="thr_meridian_docs",
+            target_type=LinkTarget.RETURN,
+            target_id="ret_meridian_2025",
         )
+    )
+    db.session.add(
+        Message(
+            id="msg_meridian_docs_1",
+            thread_id="thr_meridian_docs",
+            author_id="usr_dana_reyes",
+            body=(
+                "Morgan — please upload your W-2 and 1099-INT so we can start "
+                "preparing your return."
+            ),
+            visibility=Visibility.CLIENT_VISIBLE,
+            created_at=_ts(5, 11),
+            updated_at=_ts(5, 11),
+        )
+    )
+    db.session.add_all(
+        [
+            Request(
+                id="req_meridian_w2",
+                thread_id="thr_meridian_docs",
+                label="Upload your W-2",
+                status=RequestStatus.OUTSTANDING,
+                owner_user_id="usr_morgan_meridian",
+                due_date=date(2026, 3, 15),
+                fulfilled_by_document_id=None,
+                created_at=_ts(5, 12),
+                updated_at=_ts(5, 12),
+            ),
+            Request(
+                id="req_meridian_1099_int",
+                thread_id="thr_meridian_docs",
+                label="Upload your 1099-INT",
+                status=RequestStatus.OUTSTANDING,
+                owner_user_id="usr_morgan_meridian",
+                due_date=date(2026, 3, 15),
+                fulfilled_by_document_id=None,
+                created_at=_ts(5, 13),
+                updated_at=_ts(5, 13),
+            ),
+        ]
     )
     db.session.flush()
 

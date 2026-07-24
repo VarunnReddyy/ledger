@@ -69,6 +69,46 @@ export function formatDate(iso: string | null | undefined): string {
   }).format(date);
 }
 
+export interface Dueness {
+  label: string;
+  className: string;
+}
+
+/** Relative due-date label for tasks, requests, and return deadlines. */
+export function formatDueness(
+  dueDate: string | null | undefined,
+  today: Date = new Date(),
+): Dueness {
+  if (!dueDate) {
+    return { label: "—", className: "text-ink/60" };
+  }
+
+  const due = new Date(`${dueDate}T00:00:00`);
+  if (Number.isNaN(due.getTime())) {
+    return { label: dueDate, className: "text-ink/60" };
+  }
+
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+  const diffDays = Math.round(
+    (dueDay.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (diffDays < 0) {
+    const daysLate = Math.abs(diffDays);
+    return {
+      label: `Overdue · ${daysLate} ${daysLate === 1 ? "day" : "days"}`,
+      className: "text-flag",
+    };
+  }
+
+  if (diffDays === 0) {
+    return { label: "Due today", className: "text-pending" };
+  }
+
+  return { label: `Due ${formatDate(dueDate)}`, className: "text-ink/60" };
+}
+
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) {
     return "—";

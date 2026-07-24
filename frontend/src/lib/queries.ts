@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "./api";
 import type {
+  ClientListItem,
   DocumentDetail,
   DocumentListResponse,
   DocumentStatus,
@@ -9,6 +10,7 @@ import type {
   FieldCorrectResponse,
   FieldTrace,
   FieldVerifyResponse,
+  FulfillmentResult,
   MeResponse,
   MessageCreateRequest,
   MessageOut,
@@ -30,11 +32,16 @@ export interface RoleScopedParams {
   user: string;
 }
 
+export interface ReturnsQueryParams {
+  client?: string;
+}
+
 export interface DocumentsQueryParams {
   q?: string;
   type?: DocType | "";
   status?: DocumentStatus | "";
   year?: number;
+  client?: string;
   page?: number;
   per_page?: number;
 }
@@ -68,10 +75,14 @@ export function useTasks(params: TasksQueryParams | null) {
   });
 }
 
-export function useReturns() {
+export function useReturns(params: ReturnsQueryParams = {}) {
+  const query = {
+    client: params.client || undefined,
+  };
+
   return useQuery({
-    queryKey: ["returns"],
-    queryFn: () => apiGet<ReturnListItem[]>("/api/returns"),
+    queryKey: ["returns", query],
+    queryFn: () => apiGet<ReturnListItem[]>(`/api/returns${buildSearchParams(query)}`),
   });
 }
 
@@ -152,6 +163,29 @@ export function usePostThreadMessage(scope: RoleScopedParams | null) {
       void queryClient.invalidateQueries({ queryKey: ["threads"] });
       void queryClient.invalidateQueries({ queryKey: ["returns"] });
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
+    },
+  });
+}
+
+export function useFulfillRequest(scope: RoleScopedParams | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (requestId: string) => {
+      if (!scope) {
+        throw new Error("Fulfilling a request requires an active role and user.");
+      }
+      return apiPost<FulfillmentResult>(
+        `/api/requests/${requestId}/fulfill${buildSearchParams({
+          role: scope.role,
+          user: scope.user,
+        })}`,
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["returns"] });
+      await queryClient.invalidateQueries({ queryKey: ["documents"] });
+      await queryClient.invalidateQueries({ queryKey: ["threads"] });
     },
   });
 }
@@ -295,6 +329,7 @@ export function useDocuments(params: DocumentsQueryParams = {}) {
     type: params.type || undefined,
     status: params.status || undefined,
     year: params.year,
+    client: params.client || undefined,
     page,
     per_page: perPage,
   };
@@ -303,6 +338,13 @@ export function useDocuments(params: DocumentsQueryParams = {}) {
     queryKey: ["documents", query],
     queryFn: () =>
       apiGet<DocumentListResponse>(`/api/documents${buildSearchParams(query)}`),
+  });
+}
+
+export function useClients() {
+  return useQuery({
+    queryKey: ["clients"],
+    queryFn: () => apiGet<ClientListItem[]>("/api/clients"),
   });
 }
 

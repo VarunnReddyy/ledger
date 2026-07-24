@@ -3,8 +3,8 @@ import type { FormEvent } from "react";
 import { X } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import {
-  formatDate,
   formatDateTime,
+  formatDueness,
   initialsFromName,
   roleLabel,
 } from "@/lib/formatters";
@@ -260,7 +260,7 @@ interface ThreadBodyProps {
 }
 
 function ThreadBody({ thread }: ThreadBodyProps) {
-  const outstanding = thread.requests.filter((req) => req.status === "outstanding");
+  const requests = thread.requests;
 
   return (
     <div className="space-y-4 px-4 py-4">
@@ -273,13 +273,13 @@ function ThreadBody({ thread }: ThreadBodyProps) {
         ) : null}
       </div>
 
-      {outstanding.length > 0 ? (
-        <section aria-label="Outstanding requests" className="space-y-2">
+      {requests.length > 0 ? (
+        <section aria-label="Request checklist" className="space-y-2">
           <h4 className="text-xs font-medium uppercase tracking-wide text-ink/50">
-            Outstanding requests
+            Requests
           </h4>
           <ul className="space-y-2">
-            {outstanding.map((req) => (
+            {requests.map((req) => (
               <RequestRow key={req.id} request={req} />
             ))}
           </ul>
@@ -304,17 +304,36 @@ interface RequestRowProps {
 }
 
 function RequestRow({ request }: RequestRowProps) {
+  const dueness = formatDueness(request.due_date);
+  const fulfilled = request.status === "fulfilled";
+  const waived = request.status === "waived";
+  const checked = fulfilled || waived;
+
   return (
     <li className="flex items-start gap-2 rounded-sm border border-rule bg-ledger/30 px-3 py-2 text-sm">
       <span
-        className="mt-0.5 inline-block h-3.5 w-3.5 shrink-0 rounded-sm border border-rule bg-paper"
+        className={`mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border ${
+          checked
+            ? "border-seal bg-seal text-paper"
+            : "border-rule bg-paper"
+        }`}
         aria-hidden
-      />
+      >
+        {checked ? (
+          <span className="text-[0.55rem] font-bold leading-none">✓</span>
+        ) : null}
+      </span>
       <div className="min-w-0 flex-1">
-        <p className="text-ink">{request.label}</p>
-        {request.due_date ? (
-          <p className="mt-0.5 font-tabular text-xs text-ink/60">
-            Due {formatDate(request.due_date)}
+        <p className={checked ? "text-ink/60 line-through" : "text-ink"}>
+          {request.label}
+        </p>
+        {fulfilled ? (
+          <p className="mt-0.5 text-xs text-seal">Received</p>
+        ) : waived ? (
+          <p className="mt-0.5 text-xs text-ink/50">Waived</p>
+        ) : request.due_date ? (
+          <p className={`mt-0.5 font-tabular text-xs ${dueness.className}`}>
+            {dueness.label}
           </p>
         ) : (
           <p className="mt-0.5 text-xs text-ink/50">No due date</p>

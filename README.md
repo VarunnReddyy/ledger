@@ -12,6 +12,7 @@ Ledger is an AI-assisted tax platform for CPA firm staff and their clients: staf
 | Verify / correct + audit trail | Field detail → **Mark verified** or **Correct this**. Corrections persist via `AiCorrection` and reload on the field. |
 | Document search / filter / pagination (challenge 09) | **Documents** — search box, type/status filters, paginated table (~320+ seeded docs). |
 | Client first-run (challenge 03) | Header role switcher → membership for **Meridian** (or `/portal/clt_meridian`). Dominant **Next step** card above the fold. |
+| Cross-role live loop — fulfill a request as the Meridian client, refresh as Dana: status, request checklist, and document list all reflect it. | As **Morgan** (`?as=mem_morgan_taxpayer`), **Upload your W-2** then **Upload your 1099-INT**. Switch to **Dana**, refresh Returns / Meridian thread / Documents. |
 | Dual role + audience labels | Switch **Priya** between Firm admin and “My personal return.” Nav, landing page, and status copy change with the membership. |
 | Role-filtered permissions (server-side) | As **Dana**, open Documents → **W-2 — Beta LLC** → **Discussion** (internal thread). Open the same doc as **Alex** (`?as=mem_alex_owner`) — internal thread is absent. |
 | Collaboration / outstanding requests | Field **13** (QBI) → **Discussion** — client-visible thread + outstanding K-1 request. |

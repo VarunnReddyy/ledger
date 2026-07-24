@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorCard } from "@/components/ErrorCard";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { formatDate } from "@/lib/formatters";
+import { formatDueness } from "@/lib/formatters";
 import { queryErrorMessage } from "@/lib/queryErrors";
 import { useTasks } from "@/lib/queries";
 import { useRole } from "@/lib/role-context";
 import type { TaskListItem, TaskPriority } from "@/lib/types";
+
+const TODAY_LIMIT = 5;
 
 export default function DashboardRoute() {
   const {
@@ -20,6 +22,7 @@ export default function DashboardRoute() {
     isLoading: roleLoading,
   } = useRole();
   const [needsReviewOnly, setNeedsReviewOnly] = useState(false);
+  const [weekExpanded, setWeekExpanded] = useState(false);
 
   const role = activeMembership?.role;
   const userId = activeUser?.id;
@@ -33,11 +36,18 @@ export default function DashboardRoute() {
     if (!tasks.data) {
       return [];
     }
+    const ranked = [...tasks.data].sort(
+      (a, b) => b.priority_score - a.priority_score || a.id.localeCompare(b.id),
+    );
     if (isReviewer && needsReviewOnly) {
-      return tasks.data.filter((task) => task.owner_role === "reviewer");
+      return ranked.filter((task) => task.owner_role === "reviewer");
     }
-    return tasks.data;
+    return ranked;
   }, [isReviewer, needsReviewOnly, tasks.data]);
+
+  const todayTasks = visibleTasks.slice(0, TODAY_LIMIT);
+  const weekTasks = visibleTasks.slice(TODAY_LIMIT);
+  const moreCount = weekTasks.length;
 
   if (roleError) {
     return (
@@ -57,9 +67,9 @@ export default function DashboardRoute() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s work</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
           <p className="mt-1 text-sm text-ink/70">
-            Ranked tasks across open returns for {activeUser.name}.
+            Ranked by urgency — deadlines, blockers, and review load.
           </p>
         </div>
         {isReviewer ? (
@@ -95,8 +105,23 @@ export default function DashboardRoute() {
         />
       ) : null}
 
-      {tasks.isSuccess && visibleTasks.length > 0 ? (
-        <TaskList tasks={visibleTasks} hrefFor={hrefFor} />
+      {tasks.isSuccess && todayTasks.length > 0 ? (
+        <section aria-label="Today">
+          <TaskList
+            tasks={weekExpanded ? [...todayTasks, ...weekTasks] : todayTasks}
+            hrefFor={hrefFor}
+          />
+          {moreCount > 0 ? (
+            <button
+              type="button"
+              aria-expanded={weekExpanded}
+              onClick={() => setWeekExpanded((current) => !current)}
+              className="mt-3 text-sm text-ink/55 underline-offset-2 hover:text-ink hover:underline"
+            >
+              {weekExpanded ? "Show less" : `${moreCount} more this week ›`}
+            </button>
+          ) : null}
+        </section>
       ) : null}
     </div>
   );
@@ -110,25 +135,26 @@ interface TaskListProps {
 function TaskList({ tasks, hrefFor }: TaskListProps) {
   return (
     <ul className="divide-y divide-rule border border-rule">
-      {tasks.map((task, index) => (
-        <li key={task.id} className={index % 2 === 1 ? "bg-ledger/50" : "bg-paper"}>
-          <Link
-            to={hrefFor(`/returns/${task.return_id}`)}
-            className="flex flex-col gap-1 px-4 py-3 hover:bg-ledger/40 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <div className="text-sm font-medium text-ink">{task.title}</div>
-              <div className="mt-0.5 text-xs text-ink/60">
-                {task.client_name} · <span className="font-tabular">{task.id}</span>
+      {tasks.map((task, index) => {
+        const dueness = formatDueness(task.due_date);
+        return (
+          <li key={task.id} className={index % 2 === 1 ? "bg-ledger/50" : "bg-paper"}>
+            <Link
+              to={hrefFor(`/returns/${task.return_id}`)}
+              className="flex cursor-pointer flex-col gap-1 px-4 py-3 hover:bg-ledger sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <div className="text-sm font-medium text-ink">{task.title}</div>
+                <div className="mt-0.5 text-xs text-ink/60">{task.client_name}</div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 text-xs">
-              <PriorityMark priority={task.priority} />
-              <span className="font-tabular text-ink/60">Due {formatDate(task.due_date)}</span>
-            </div>
-          </Link>
-        </li>
-      ))}
+              <div className="flex items-center gap-3 text-xs">
+                <PriorityMark priority={task.priority} />
+                <span className={`font-tabular ${dueness.className}`}>{dueness.label}</span>
+              </div>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }

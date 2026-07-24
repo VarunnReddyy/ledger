@@ -12,7 +12,8 @@ from . import api_bp
 
 @api_bp.get("/returns")
 def list_returns():
-    items = returns_service.list_returns()
+    client_id = request.args.get("client") or None
+    items = returns_service.list_returns(client_id=client_id)
     return jsonify([item.model_dump(mode="json") for item in items])
 
 

@@ -1,17 +1,20 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorCard } from "@/components/ErrorCard";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { StatusPill } from "@/components/StatusPill";
+import { ApiError } from "@/lib/api";
 import { clientStatusLabel } from "@/lib/formatters";
 import { queryErrorMessage } from "@/lib/queryErrors";
-import { useReturnDetail, useReturns } from "@/lib/queries";
+import { useFulfillRequest, useReturnDetail, useReturns } from "@/lib/queries";
 import { useRole } from "@/lib/role-context";
 import type {
   ClientNextStepOut,
   ReturnListItem,
   ReturnStatus,
 } from "@/lib/types";
+import type { RoleScopedParams } from "@/lib/queries";
 
 /** Client-facing timeline steps in lifecycle order (unique labels only). */
 const CLIENT_TIMELINE: ReturnStatus[] = [
@@ -27,6 +30,7 @@ const CLIENT_TIMELINE: ReturnStatus[] = [
 const FIRST_RUN_STATUSES: ReadonlySet<ReturnStatus> = new Set([
   "intake",
   "docs_requested",
+  "docs_received",
 ]);
 
 export default function ClientPortalRoute() {
@@ -116,7 +120,7 @@ export default function ClientPortalRoute() {
           </p>
         </div>
 
-        <NextStepCard nextStep={nextStep} />
+        <NextStepCard nextStep={nextStep} scope={roleScope} />
 
         <ProgressTimeline activeStepIndex={activeStepIndex} />
 
@@ -210,10 +214,32 @@ export default function ClientPortalRoute() {
 
 interface NextStepCardProps {
   nextStep: ClientNextStepOut | null;
+  scope: RoleScopedParams | null;
 }
 
-function NextStepCard({ nextStep }: NextStepCardProps) {
-  if (!nextStep) {
+function NextStepCard({ nextStep, scope }: NextStepCardProps) {
+  const fulfill = useFulfillRequest(scope);
+  const [receivedLabel, setReceivedLabel] = useState<string | null>(null);
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!receivedLabel) {
+      return;
+    }
+    if (!nextStep || nextStep.id !== pendingRequestId) {
+      setReceivedLabel(null);
+      setPendingRequestId(null);
+    }
+  }, [nextStep, pendingRequestId, receivedLabel]);
+
+  const canUpload = nextStep?.source === "request" && Boolean(scope);
+  const showReceived =
+    Boolean(receivedLabel) &&
+    (!nextStep || nextStep.id === pendingRequestId);
+
+  // Quiet one-liner when there is nothing actionable — never an empty card.
+  if (!showReceived && !canUpload) {
     return (
       <p className="border-l-2 border-seal pl-4 text-base text-ink">
         You&apos;re all set — we&apos;re preparing your return.
@@ -221,22 +247,87 @@ function NextStepCard({ nextStep }: NextStepCardProps) {
     );
   }
 
+  const activeStep = nextStep;
+  const docName = activeStep
+    ? docNameFromHeadline(activeStep.headline)
+    : (receivedLabel ?? "");
   const minutesLabel =
-    nextStep.estimate_minutes === 1
+    activeStep && activeStep.estimate_minutes === 1
       ? "1 minute"
-      : `${nextStep.estimate_minutes} minutes`;
+      : activeStep
+        ? `${activeStep.estimate_minutes} minutes`
+        : null;
+
+  async function onUpload() {
+    if (!activeStep || activeStep.source !== "request" || !scope) {
+      return;
+    }
+    const name = docNameFromHeadline(activeStep.headline);
+    setActionError(null);
+    setPendingRequestId(activeStep.id);
+    setReceivedLabel(name);
+    try {
+      await fulfill.mutateAsync(activeStep.id);
+    } catch (err: unknown) {
+      setReceivedLabel(null);
+      setPendingRequestId(null);
+      if (err instanceof ApiError) {
+        setActionError(err.message);
+      } else {
+        setActionError("Upload could not be completed. Try again.");
+      }
+    }
+  }
 
   return (
     <section className="rounded-sm border-2 border-seal bg-ledger/40 px-6 py-8">
       <p className="text-sm font-medium uppercase tracking-wide text-seal">Next step</p>
-      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-        {nextStep.headline} — {minutesLabel}
-      </h2>
-      <p className="mt-3 max-w-md text-sm text-ink/70">
-        Finish this and we can keep moving on your return.
+      {activeStep && !showReceived ? (
+        <>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            {activeStep.headline}
+            {minutesLabel ? ` — ${minutesLabel}` : null}
+          </h2>
+          <p className="mt-3 max-w-md text-sm text-ink/70">
+            Finish this and we can keep moving on your return.
+          </p>
+        </>
+      ) : null}
+
+      {showReceived && receivedLabel ? (
+        <p className="mt-4 text-base font-medium text-seal">{receivedLabel} received ✓</p>
+      ) : (
+        <button
+          type="button"
+          disabled={fulfill.isPending}
+          onClick={() => {
+            void onUpload();
+          }}
+          className="mt-5 inline-flex items-center rounded-sm bg-seal px-4 py-2.5 text-sm font-medium text-paper hover:bg-seal/90 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+        >
+          Upload {docName}
+        </button>
+      )}
+
+      {actionError ? (
+        <div className="mt-4">
+          <ErrorCard message={actionError} />
+        </div>
+      ) : null}
+
+      <p className="mt-5 text-xs text-ink/50">
+        Demo: upload is simulated, no file leaves your device.
       </p>
     </section>
   );
+}
+
+function docNameFromHeadline(headline: string): string {
+  const match = /^upload\s+/i.exec(headline);
+  if (match) {
+    return headline.slice(match[0].length);
+  }
+  return headline;
 }
 
 interface ProgressTimelineProps {

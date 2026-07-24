@@ -17,4 +17,13 @@ def health() -> tuple[dict[str, str], int]:
 
 
 # Domain route modules register themselves on `api_bp` at import time.
-from . import documents, fields, me, returns, tasks, threads  # noqa: E402, F401
+from . import (  # noqa: E402, F401
+    clients,
+    documents,
+    fields,
+    me,
+    requests,
+    returns,
+    tasks,
+    threads,
+)

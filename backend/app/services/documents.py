@@ -26,6 +26,7 @@ def list_documents(
     doc_type: DocType | None = None,
     status: DocumentStatus | None = None,
     year: int | None = None,
+    client_id: str | None = None,
     page: int = 1,
     per_page: int = 50,
 ) -> DocumentListResponse:
@@ -49,6 +50,8 @@ def list_documents(
         filters.append(Document.status == status)
     if year is not None:
         filters.append(Document.tax_year == year)
+    if client_id is not None:
+        filters.append(Document.client_id == client_id)
 
     count_stmt = select(func.count()).select_from(Document)
     if filters:

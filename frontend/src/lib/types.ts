@@ -426,11 +426,23 @@ export interface DocumentListItem {
   uploaded_by_id: string | null;
 }
 
+export interface FulfillmentResult {
+  request: RequestOut;
+  document: DocumentListItem;
+  return_status: ReturnStatus;
+}
+
 export interface DocumentListResponse {
   items: DocumentListItem[];
   total: number;
   page: number;
   per_page: number;
+}
+
+export interface ClientListItem {
+  id: string;
+  display_name: string;
+  entity_type: EntityType;
 }
 
 export interface DocumentPageOut {

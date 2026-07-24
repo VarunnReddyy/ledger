@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { ClientFilter } from "@/components/ClientFilter";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorCard } from "@/components/ErrorCard";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -33,7 +34,9 @@ const DOC_STATUSES: DocumentStatus[] = [
 const PER_PAGE = 50;
 
 export default function DocumentsRoute() {
-  const { hrefFor } = useRole();
+  const { hrefFor, isFirmSide } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clientId = searchParams.get("client");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [docType, setDocType] = useState<DocType | "">("");
@@ -48,19 +51,32 @@ export default function DocumentsRoute() {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [clientId]);
+
   const documents = useDocuments({
     q: debouncedQ,
     type: docType,
     status,
+    client: clientId ?? undefined,
     page,
     per_page: PER_PAGE,
   });
 
-  const hasFilters = Boolean(debouncedQ || docType || status);
+  const hasOtherFilters = Boolean(debouncedQ || docType || status);
+  const hasClientFilter = Boolean(clientId);
   const total = documents.data?.total ?? 0;
   const rangeStart = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
   const rangeEnd = Math.min(page * PER_PAGE, total);
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  function clearClientFilter() {
+    const next = new URLSearchParams(searchParams);
+    next.delete("client");
+    setSearchParams(next, { replace: true });
+    setPage(1);
+  }
 
   function clearFilters() {
     setSearchInput("");
@@ -68,6 +84,9 @@ export default function DocumentsRoute() {
     setDocType("");
     setStatus("");
     setPage(1);
+    if (clientId) {
+      clearClientFilter();
+    }
   }
 
   return (
@@ -80,6 +99,9 @@ export default function DocumentsRoute() {
       </div>
 
       <div className="flex flex-col gap-3 border border-rule bg-paper p-4 sm:flex-row sm:flex-wrap sm:items-end">
+        {isFirmSide ? (
+          <ClientFilter onChange={() => setPage(1)} />
+        ) : null}
         <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-ink/60">
           Search
           <input
@@ -138,14 +160,34 @@ export default function DocumentsRoute() {
 
       {documents.isSuccess && documents.data.items.length === 0 ? (
         <EmptyState
-          title={hasFilters ? "No documents match these filters" : "No documents yet"}
-          body={
-            hasFilters
-              ? "Clear the search and filters to see the full document list."
-              : "Request documents from a client return, or upload files to begin extraction."
+          title={
+            hasClientFilter
+              ? "No documents match"
+              : hasOtherFilters
+                ? "No documents match these filters"
+                : "No documents yet"
           }
-          actionLabel={hasFilters ? "Clear filters" : undefined}
-          onAction={hasFilters ? clearFilters : undefined}
+          body={
+            hasClientFilter
+              ? "Try another client, or clear the client filter to see the full list."
+              : hasOtherFilters
+                ? "Clear the search and filters to see the full document list."
+                : "Request documents from a client return, or upload files to begin extraction."
+          }
+          actionLabel={
+            hasClientFilter
+              ? "Clear client filter"
+              : hasOtherFilters
+                ? "Clear filters"
+                : undefined
+          }
+          onAction={
+            hasClientFilter
+              ? clearClientFilter
+              : hasOtherFilters
+                ? clearFilters
+                : undefined
+          }
         />
       ) : null}
 

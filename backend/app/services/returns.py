@@ -57,7 +57,7 @@ DOC_TYPE_ESTIMATE_MINUTES: dict[DocType, int] = {
 REQUEST_ESTIMATE_MINUTES = 3
 
 
-def list_returns() -> list[ReturnListItem]:
+def list_returns(*, client_id: str | None = None) -> list[ReturnListItem]:
     open_statuses = [
         TaskStatus.OPEN,
         TaskStatus.IN_PROGRESS,
@@ -92,6 +92,8 @@ def list_returns() -> list[ReturnListItem]:
         )
         .order_by(TaxReturn.due_date.asc(), TaxReturn.id.asc())
     )
+    if client_id:
+        stmt = stmt.where(TaxReturn.client_id == client_id)
     rows = db.session.execute(stmt).all()
 
     items: list[ReturnListItem] = []

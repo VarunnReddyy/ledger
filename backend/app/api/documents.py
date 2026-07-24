@@ -16,6 +16,7 @@ def list_documents():
     type_raw = request.args.get("type")
     status_raw = request.args.get("status")
     year_raw = request.args.get("year")
+    client_id = request.args.get("client") or None
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 50))
 
@@ -28,6 +29,7 @@ def list_documents():
         doc_type=doc_type,
         status=status,
         year=year,
+        client_id=client_id,
         page=page,
         per_page=per_page,
     )
